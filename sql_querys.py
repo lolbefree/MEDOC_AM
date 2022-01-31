@@ -1,6 +1,3 @@
-
-
-
 def act_header_and_bottom(x):
     return f"""select 'ТОВ "Автосоюз"' as FIRM_NAME,
               '04655,  м. Київ, просп.Степана Бандери,28' as FIRM_ADR,
@@ -9,7 +6,8 @@ def act_header_and_bottom(x):
          'sto@avtosojuz.ua' as FIRM_EMAILORG,
          dbo.Avtosojuz_active_bank() as FIRM_NMBANK,
          dbo.Avtosojuz_active_bank_iban() as FIRM_RS,
-         '302238426544' as FIRM_INN,
+         '30223848' as FIRM_INN,
+         isnull(c1.commune,'') as SIDE_CDINDTAXNUM_K,
          '30223848' as FIRM_EDRPOU,
          c1.lname as SIDE_CD_K,
          c2.lname as SIDE_OWNER,
@@ -81,7 +79,7 @@ def act_bonus(x):
 def act_sum(x):
     return f""" select 'FIELD14' as field,sum(rsum) as suma from GROWS01 where grecno={x} and rtype=1
 union all 
- select 'FIELD13' as field,  sum(rsum) as suma from GROWS01 where grecno={x} and rtype=7
+ select 'FIELD13' as field,  sum(rsum) as suma from GROWS01 where grecno={x} and rtype in (7,4)
  union all
  select 'SUMWITHOUTPDV' as field,round(sum(rsum)/1.2,2) as suma from GROWS01 where grecno={x} and rtype in (7,1,4)
 union all
@@ -91,6 +89,16 @@ select 'DOCSUM' as field,sum(rsum) as suma from GROWS01 where grecno={x} and rty
 
 
 def act_rows(x):
+#     print(f"""
+# select 	row_number() over (order by rno) as TAB1_F1,
+# 		item as	TAB1_F2,
+# 		name as TAB1_F3,
+# 		case when rtype=1 then 'шт' when   rtype=7 then 'нг' else '' end as  TAB1_F4,
+# 		num as TAB1_F5,
+# 		unitpr as TAB1_F6,
+# 		round((unitpr-(unitpr*DISCPC)),2) as TAB1_F7,
+# 		round((unitpr-(unitpr*DISCPC)),2)*num as  TAB1_F8
+# 		 from grows01 where grecno={x} and rtype in (1,7,4))""")
     return f"""
 select 	row_number() over (order by rno) as TAB1_F1,
 		item as	TAB1_F2,
@@ -100,7 +108,7 @@ select 	row_number() over (order by rno) as TAB1_F1,
 		unitpr as TAB1_F6,
 		round((unitpr-(unitpr*DISCPC)),2) as TAB1_F7,
 		round((unitpr-(unitpr*DISCPC)),2)*num as  TAB1_F8
-		 from grows01 where grecno={x} and rtype in (1,7,4,8)
+		 from grows01 where grecno={x} and rtype in (1,7,4)
 """
 
 
@@ -113,7 +121,7 @@ select 'ТОВ "Автосоюз"' as FIRM_NAME,
          'sto@avtosojuz.ua' as FIRM_EMAILORG,
          dbo.Avtosojuz_active_bank() as FIRM_NMBANK,
          dbo.Avtosojuz_active_bank_iban() as FIRM_RS,
-         '302238426544' as FIRM_INN,
+         isnull(c1.commune,'') as FIRM_INN,
          '30223848' as FIRM_EDRPOU,
 
          isnull(c2.lname, ' ') as field1,
@@ -139,12 +147,6 @@ select 'ТОВ "Автосоюз"' as FIRM_NAME,
          s.SORDNO as  FIELD18,
          c1.VATID as  SIDE_EDRPOU_K
         
-
-
-       
-
-
-
           from sBILS01 g
          join  sSALS01 s on g.sSALID=s.sSALID
           join cust c1 on c1.custno=g.custno
@@ -156,7 +158,7 @@ select 'ТОВ "Автосоюз"' as FIRM_NAME,
           left join adin ad3 on ad3.adinid=c1.CUSTID and ad3.FIELDID='103'
           join sman_full s1 on s1.SMANID=g.HSMANID
 
-          where g.SRECNO={x}
+          where g.Ssalid={x}
 
     """
 
@@ -173,7 +175,7 @@ item as TAB1_F2,
               round((unitpr-(unitpr*DISCPC)),2) as TAB1_F7,
               round((unitpr-(unitpr*DISCPC)),2)*num as  TAB1_F8
 
-              from srows01 where srecno={x} and rtype in (1,7)
+              from srows01 where ssalid={x} and rtype in (1,7)
 
 
 """
@@ -181,13 +183,13 @@ item as TAB1_F2,
 
 def vn_sum(x):
     return f"""
-select 'SUMWITHOUTPDV' as field,round(isnull(sum(rsum)/1.2,0),2) as suma from srows01 where srecno={x} and rtype in (7,1,4)
+select 'SUMWITHOUTPDV' as field,round(isnull(sum(rsum)/1.2,0),2) as suma from srows01 where ssalid={x} and rtype in (7,1,4)
 union all
-select 'SUMPDV' as field,isnull(sum(rsum)-round(isnull(sum(rsum)/1.2,0),2),0) as suma from srows01 where srecno={x} and rtype in (7,1,4)
+select 'SUMPDV' as field,isnull(sum(rsum)-round(isnull(sum(rsum)/1.2,0),2),0) as suma from srows01 where ssalid={x} and rtype in (7,1,4)
 union all
-select 'DOCSUM' as field,isnull(sum(rsum),0) as suma from srows01 where srecno={x} and rtype in (7,1,4)
+select 'DOCSUM' as field,isnull(sum(rsum),0) as suma from srows01 where ssalid={x} and rtype in (7,1,4)
 union all
-select 'DOCSUM_TEXT' as field,isnull(sum(rsum),0) as suma from srows01 where srecno={x} and rtype in (7,1,4)
+select 'DOCSUM_TEXT' as field,isnull(sum(rsum),0) as suma from srows01 where ssalid={x} and rtype in (7,1,4)
 
 
 """
@@ -280,6 +282,7 @@ select 'DOCSUM' as field,isnull(sum(rsum),0) as suma from srows01 where prerecno
 
 """
 
+
 def raht_header_and_bottom(x):
     return f"""
 select 'ТОВ "Автосоюз"' as FIRM_NAME,
@@ -368,6 +371,7 @@ select 'DOCSUM' as field,isnull(sum(rsum),0) as suma from GROWS01 where prerecno
 
 """
 
+
 def raht_bonus(x):
     return f"""select 'FIELD10' as field,round(isnull(sum((unitpr*num)-(round((unitpr-(unitpr*DISCPC)),2)*num)),0),2) as bonus from grows01 where prerecno={x} and rtype in (1)
 		  union all 
@@ -379,3 +383,13 @@ def raht_bonus(x):
 
 
 """
+
+
+def get_grecno(x):
+    return f"select grecno from GBILS01 where GSALID = {x}"
+
+
+def get_custname_from_GBILS(x):
+    return f"select CUSTNAME from GBILS01 where grecnO={x}"
+def get_custname_from_sBILS(x):
+    return f"select CUSTNAME from sBILS01 where ssalid={x}"
