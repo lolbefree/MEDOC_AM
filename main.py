@@ -11,7 +11,7 @@ import os
 
 
 class Docs:
-    def __init__(self, entry_id, type_doc):
+    def __init__(self, entry_id: int, type_doc: str):
         self.today = date.today().strftime("%d.%m.%Y")
         self.two_char_after_dot = lambda x: "%.2f" % x if x % 1 != 0 else int(x)
         self.server = not_for_git.db_server
@@ -32,7 +32,7 @@ class Docs:
         self.str_to_save = start_with_xml.check_doc(self.type_doc, self.today)
         self.get_header_and_bottom()
 
-    def add_row_to_xml(self, key, val):
+    def add_row_to_xml(self, key, val) -> None:
         self.str_to_save += f"""\t\t<ROW LINE="0" TAB="0" NAME="{key}">
           <VALUE>{val}</VALUE>\n
            </ROW>\n"""
@@ -79,7 +79,7 @@ class Docs:
         for num, item in enumerate(res):
             for i in range(range_res):
                 self.str_to_save += f"""\t\t<ROW LINE="{num}" TAB="1" NAME="{column_names[i]}">
-                   <VALUE>{self.two_char_after_dot(res[index_][i]) if isinstance(res[index_][i], decimal.Decimal) 
+                   <VALUE>{self.two_char_after_dot(res[index_][i]) if isinstance(res[index_][i], decimal.Decimal)
                 else "" if res[index_][i] is None else res[index_][i]}</VALUE></ROW>\n"""
 
             index_ += 1
@@ -117,8 +117,8 @@ class Docs:
 
 
 if __name__ == '__main__':
-    # m = Docs(3, "act")
-    m = Docs(sys.argv[1], sys.argv[2])
+    m = Docs(121076967, "act")
+    # m = Docs(sys.argv[1], sys.argv[2])
 
     # vn 111021393
     # act 121071808
